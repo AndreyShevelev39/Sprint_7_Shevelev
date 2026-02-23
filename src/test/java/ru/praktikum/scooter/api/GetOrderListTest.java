@@ -1,16 +1,14 @@
 package ru.praktikum.scooter.api;
 
+import org.apache.http.HttpStatus;
 import org.junit.Test;
-import ru.praktikum.scooter.api.client.OrderClient;
-
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.notNullValue;
 
 public class GetOrderListTest {
     @Test
-    public void getOrderListReturnsData() {
-        OrderClient orderClient = new OrderClient();
-        orderClient.getList()
-                .statusCode(200)
-                .body("orders", notNullValue());
+    public void getOrderListTest() {
+        given().get("https://qa-scooter.praktikum-services.ru/api/v1/orders")
+                .then().statusCode(HttpStatus.SC_OK).body("orders", notNullValue());
     }
 }

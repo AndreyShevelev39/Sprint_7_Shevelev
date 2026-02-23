@@ -1,6 +1,9 @@
 package ru.praktikum.scooter.api;
 
+import com.github.javafaker.Faker;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
+import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,41 +11,75 @@ import ru.praktikum.scooter.api.client.CourierClient;
 import ru.praktikum.scooter.api.model.Courier;
 import ru.praktikum.scooter.api.model.CourierCredentials;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.equalTo;
 
 public class LoginCourierTest {
-    private CourierClient courierClient;
-    private int courierId;
+    private CourierClient client;
+    private Courier courier;
+    private Integer courierId;
+    private final Faker faker = new Faker();
 
     @Before
     public void setUp() {
-        courierClient = new CourierClient();
-        Courier courier = new Courier("login_ninja_2", "1234", "sasha");
-        courierClient.create(courier);
+        client = new CourierClient();
+
+        String login = faker.letterify("ninja??????") + faker.number().digits(5);
+        courier = new Courier(login, "password123", "Ivan");
+
+
+        client.create(courier)
+                .statusCode(HttpStatus.SC_CREATED);
     }
 
     @After
     public void tearDown() {
-        if (courierId != 0) {
-            courierClient.delete(courierId);
+        if (courierId != null) {
+            client.delete(courierId);
+        } else {
+            ValidatableResponse loginRes = client.login(CourierCredentials.from(courier));
+            if (loginRes.extract().statusCode() == HttpStatus.SC_OK) {
+                int id = loginRes.extract().path("id");
+                client.delete(id);
+            }
         }
     }
 
     @Test
-    public void courierCanLogin() {
-        CourierCredentials creds = new CourierCredentials("login_ninja_2", "1234");
-        ValidatableResponse response = courierClient.login(creds);
+    @DisplayName("Успешный логин курьера")
+    public void courierCanLoginTest() {
+        ValidatableResponse response = client.login(CourierCredentials.from(courier));
 
-        response.statusCode(200).body("id", notNullValue());
+        response.statusCode(HttpStatus.SC_OK)
+                .body("id", notNullValue());
+
         courierId = response.extract().path("id");
     }
 
     @Test
-    public void loginWithWrongPasswordFails() {
-        CourierCredentials creds = new CourierCredentials("login_ninja_2", "wrong_pass");
-        ValidatableResponse response = courierClient.login(creds);
+    @DisplayName("Ошибка логина: неверный пароль")
+    public void loginWithWrongPasswordTest() {
+        CourierCredentials creds = new CourierCredentials(courier.getLogin(), "wrong_password");
+        client.login(creds)
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body("message", equalTo("Учетная запись не найдена"));
+    }
 
-        response.statusCode(404).body("message", equalTo("Учетная запись не найдена"));
+    @Test
+    @DisplayName("Ошибка логина: несуществующий пользователь")
+    public void loginWithNonExistentUserTest() {
+        CourierCredentials creds = new CourierCredentials("unexisting_user_" + faker.number().digits(10), "1234");
+        client.login(creds)
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body("message", equalTo("Учетная запись не найдена"));
+    }
+
+    @Test
+    @DisplayName("Ошибка логина: без логина или пароля")
+    public void loginWithoutRequiredFieldTest() {
+        CourierCredentials creds = new CourierCredentials("", courier.getPassword());
+        client.login(creds)
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("message", equalTo("Недостаточно данных для входа"));
     }
 }

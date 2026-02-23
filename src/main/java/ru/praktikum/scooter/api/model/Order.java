@@ -1,63 +1,21 @@
 package ru.praktikum.scooter.api.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Order {
-    private final String firstName;
-    private final String lastName;
-    private final String address;
-    private final int metroStation;
-    private final String phone;
-    private final int rentTime;
-    private final String deliveryDate;
-    private final String comment;
-    private final List<String> color;
-
-    public Order(String firstName, String lastName, String address, int metroStation, String phone, int rentTime, String deliveryDate, String comment, List<String> color) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.address = address;
-        this.metroStation = metroStation;
-        this.phone = phone;
-        this.rentTime = rentTime;
-        this.deliveryDate = deliveryDate;
-        this.comment = comment;
-        this.color = color;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public int getMetroStation() {
-        return metroStation;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public int getRentTime() {
-        return rentTime;
-    }
-
-    public String getDeliveryDate() {
-        return deliveryDate;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public List<String> getColor() {
-        return color;
-    }
+    private String firstName;
+    private String lastName;
+    private String address;
+    private int metroStation;
+    private String phone;
+    private int rentTime;
+    private String deliveryDate;
+    private String comment;
+    private List<String> color;
 }

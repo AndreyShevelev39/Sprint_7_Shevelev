@@ -2,9 +2,8 @@ package ru.praktikum.scooter.api.client;
 
 import io.qameta.allure.Step;
 import io.restassured.response.ValidatableResponse;
-import ru.praktikum.scooter.api.config.Config; // Импортируем конфиг
+import ru.praktikum.scooter.api.config.Config;
 import ru.praktikum.scooter.api.model.Order;
-
 import static io.restassured.RestAssured.given;
 
 public class OrderClient {
@@ -17,6 +16,15 @@ public class OrderClient {
                 .body(order)
                 .when()
                 .post(ROOT)
+                .then();
+    }
+
+    @Step("Отмена заказа по номеру трека: {track}")
+    public ValidatableResponse cancel(int track) {
+        return given()
+                .queryParam("track", track)
+                .when()
+                .put(ROOT + "/cancel")
                 .then();
     }
 
